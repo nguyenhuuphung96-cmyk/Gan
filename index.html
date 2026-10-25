@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dập gân">
+<meta name="theme-color" content="#1d6fe8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tính bước dập gân</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#667085;--ac:#1d6fe8;--bd:#d9dee5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b;--card:#1e2329;--tx:#eceff3;--mut:#9aa4b2;--ac:#5b9bff;--bd:#323a44}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0 auto;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:560px}
+h1{font-size:19px;margin:4px 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+.card h2{font-size:14px;margin:0 0 8px;color:var(--mut);font-weight:600}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:13px;color:var(--mut);display:block}
+input{width:100%;font-size:18px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);margin-top:3px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 10px;margin-top:6px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:15px}
+.opt.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac) inset}
+.opt b{font-size:17px}
+.opt small{color:var(--mut);font-size:13px;text-align:right}
+.hint{font-size:13px;color:var(--mut)}
+.sum{font-size:15px}
+.sum td{padding:2px 8px 2px 0}
+.sum .big{font-size:28px;font-weight:700;color:var(--ac)}
+.err{color:#d92d20;font-size:14px}
+#nav{position:fixed;left:0;right:0;top:0;display:none;align-items:center;gap:8px;padding:6px 10px;padding-top:calc(6px + env(safe-area-inset-top,0px));background:var(--card);border-bottom:1px solid var(--bd);box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:50}
+#nav button{font-size:20px;line-height:1;min-width:56px;min-height:42px;padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+#nav #nxt{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+#nav span{flex:1;text-align:center;font-size:14px;font-weight:600;color:var(--tx)}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--tx);font-family:inherit}
+svg .pl{fill:none;stroke:var(--tx);stroke-width:1}
+svg .dm{stroke:var(--ac);stroke-width:.8}
+svg .tx{fill:var(--ac)}
+</style>
+</head>
+<body>
+<h1>Tính bước dập gân <small style="font-weight:400;color:var(--mut);font-size:12px">bản v8</small></h1>
+
+<div class="card"><h2>Tấm lưới</h2>
+<div class="row">
+<div><label>Chiều dài y (mm)</label><input id="py" type="number" inputmode="decimal"></div>
+<div><label>Chiều rộng x (mm)</label><input id="px" type="number" inputmode="decimal"></div>
+</div></div>
+
+<div class="card"><h2>Biên (mép tấm đến mép ngoài gân)</h2>
+<div class="row">
+<div><label>Biên X trái (mm)</label><input id="bl" type="number" inputmode="decimal" placeholder="0"></div>
+<div><label>Biên X phải (mm)</label><input id="brr" type="number" inputmode="decimal" placeholder="0"></div>
+<div style="margin-top:10px"><label>Biên Y trên (mm)</label><input id="bt" type="number" inputmode="decimal" placeholder="0"></div>
+<div style="margin-top:10px"><label>Biên Y dưới (mm)</label><input id="bb" type="number" inputmode="decimal" placeholder="0"></div>
+<div style="margin-top:10px"><label>Biên X tăng/giảm ± (mm)</label><input id="erx" type="number" inputmode="decimal" placeholder="0"></div>
+<div style="margin-top:10px"><label>Biên Y tăng/giảm ± (mm)</label><input id="ery" type="number" inputmode="decimal" placeholder="0"></div>
+</div></div>
+
+<div class="card"><h2>Khuôn dập gân</h2>
+<div class="row">
+<div><label>Khuôn x (mm)</label><input id="dx" type="number" inputmode="decimal" value="120"></div>
+<div><label>Khuôn y (mm)</label><input id="dy" type="number" inputmode="decimal" value="40"></div>
+</div></div>
+
+<div class="card"><h2>Bước x (117 đến 124)</h2><div id="ox"></div></div>
+<div class="card"><h2>Bước y (37 đến 43)</h2><div id="oy"></div></div>
+
+<div class="card sum" id="sum"></div>
+<div class="card"><h2>Sơ đồ</h2><div id="viz"></div></div>
+
+<div id="nav"><button id="prv" type="button" aria-label="Ô trước">◀</button><span id="nm"></span><button id="nxt" type="button" aria-label="Ô tiếp">▶</button></div>
+
+<script>
+var RNG={x:[117,124],y:[37,43]};
+var sel={x:null,y:null};
+var $=function(i){return document.getElementById(i)};
+function v(i){var n=parseFloat($(i).value);return isNaN(n)?0:n}
+function f(n){return (Math.round(n*10)/10).toString().replace('.',',')}
+function axis(a,L,b1,b2,d,tol){
+  var box=$('o'+a),mn=RNG[a][0],mx=RNG[a][1],span=L-b1-b2-d;
+  if(d<=0||L<=0){box.innerHTML='<div class="err">Nhập số hợp lệ</div>';return null}
+  var c=[],seen={},nmax=Math.floor((span+2*tol)/mn+1e-9);
+  for(var n=1;n<=nmax;n++){
+    var lo=Math.max(mn,(span-2*tol)/n),hi=Math.min(mx,(span+2*tol)/n);
+    if(lo>hi+1e-9)continue;
+    var vals=[];
+    for(var k=Math.ceil(lo-1e-9);k<=hi+1e-9;k++)vals.push(k);
+    var t=Math.round(Math.min(hi,Math.max(lo,span/n))*10)/10;
+    if(t<lo)t=Math.ceil(lo*10-1e-9)/10;
+    if(t>hi)t=Math.floor(hi*10+1e-9)/10;
+    vals.push(t);
+    vals.forEach(function(s){
+      var key=n+'_'+s;if(seen[key])return;seen[key]=1;
+      var act=n*s,dev=Math.round((span-act)/2*100)/100;
+      if(Math.abs(dev)>tol+1e-9)return;
+      c.push({key:key,n:n,s:s,act:act,dev:dev,e1:b1+dev,e2:b2+dev});
+    });
+  }
+  if(!c.length){box.innerHTML='<div class="err">Không có phương án nào: bước '+mn+' đến '+mx+', biên ±'+f(tol)+'</div>';return null}
+  c.sort(function(p,q){return Math.abs(p.dev)-Math.abs(q.dev)||p.n-q.n||p.s-q.s});
+  if(!c.some(function(o){return o.key===sel[a]}))sel[a]=c[0].key;
+  var h='<div class="hint">Khoảng dập danh nghĩa = '+f(L)+' − '+f(b1)+' − '+f(b2)+' − '+f(d)+' = <b>'+f(span)+'</b><br>Biên mỗi bên được tăng/giảm tối đa '+f(tol)+', phần dư chia đều hai đầu. Có <b>'+c.length+'</b> phương án (sắp theo độ lệch biên nhỏ nhất).</div>',r=null;
+  c.forEach(function(o){
+    var on=sel[a]===o.key;
+    if(on)r={n:o.n,s:o.s,act:o.act,b1:o.e1,b2:o.e2,d:d,L:L};
+    h+='<button class="opt'+(on?' on':'')+'" onclick="pick(\''+a+'\',\''+o.key+'\')"><span><b>'+f(o.s)+'</b> × '+o.n+' khoảng<br><span class="hint">'+(o.n+1)+' hàng</span></span><small>khoảng dập '+f(o.act)+'<br>biên '+f(o.e1)+' / '+f(o.e2)+' ('+(o.dev>0?'+':'')+f(o.dev)+')</small></button>';
+  });
+  box.innerHTML=h;
+  return r;
+}
+function pick(a,k){sel[a]=k;calc()}
+function t(x,y,s,cls,rot,anchor){
+  return '<text x="'+x+'" y="'+y+'" font-size="9" text-anchor="'+(anchor||'middle')+'"'+(cls?' class="'+cls+'"':'')+(rot?' transform="rotate(-90 '+x+' '+y+')"':'')+'>'+s+'</text>';
+}
+function calc(){
+  var px=v('px'),py=v('py'),bl=v('bl'),brr=v('brr'),bt=v('bt'),bb=v('bb'),dx=v('dx'),dy=v('dy'),erx=v('erx'),ery=v('ery');
+  if(!(px>0&&py>0&&dx>0&&dy>0)){
+    var m='<div class="hint">Nhập chiều dài y và chiều rộng x của tấm để tính. Biên và biên ± để trống thì tính là 0.</div>';
+    $('ox').innerHTML=m;$('oy').innerHTML=m;$('sum').innerHTML='';$('viz').innerHTML='';return}
+  var X=axis('x',px,bl,brr,dx,erx),Y=axis('y',py,bt,bb,dy,ery);
+  if(!X||!Y){$('sum').innerHTML='';$('viz').innerHTML='';return}
+  $('sum').innerHTML='<table>'+
+   '<tr><td>Bước x</td><td><b>'+f(X.s)+'</b> × '+X.n+' khoảng</td></tr>'+
+   '<tr><td>Bước y</td><td><b>'+f(Y.s)+'</b> × '+Y.n+' khoảng</td></tr>'+
+   '<tr><td>Khoảng dập x</td><td><b>'+f(X.act)+'</b></td></tr>'+
+   '<tr><td>Khoảng dập y</td><td><b>'+f(Y.act)+'</b></td></tr>'+
+   '<tr><td>Biên trái / phải (thực tế)</td><td><b>'+f(X.b1)+' / '+f(X.b2)+'</b></td></tr>'+
+   '<tr><td>Biên trên / dưới (thực tế)</td><td><b>'+f(Y.b1)+' / '+f(Y.b2)+'</b></td></tr></table>'+
+   '<div style="margin-top:6px">Tổng số lần dập ('+(X.n+1)+' × '+(Y.n+1)+')<br><span class="big">'+((X.n+1)*(Y.n+1))+'</span></div>';
+  var PW=240,sc=PW/px,PH=py*sc,L0=50,T0=64,W=L0+PW+12,H=T0+PH+10;
+  var s='<svg viewBox="0 0 '+W+' '+H+'"><rect class="pl" x="'+L0+'" y="'+T0+'" width="'+PW+'" height="'+PH+'"/>';
+  for(var i=0;i<=X.n;i++)for(var j=0;j<=Y.n;j++){
+    s+='<rect x="'+(L0+(X.b1+i*X.s)*sc)+'" y="'+(T0+(Y.b1+j*Y.s)*sc)+'" width="'+(dx*sc)+'" height="'+(dy*sc)+'" fill="#1d6fe8" fill-opacity=".25" stroke="#1d6fe8" stroke-width=".4"/>';
+  }
+  var xa=L0+X.b1*sc,xb=L0+(X.b1+X.act)*sc,ya=T0+Y.b1*sc,yb=T0+(Y.b1+Y.act)*sc;
+  s+=t(L0+PW/2,T0-44,'Rộng x = '+f(px))+'<line class="dm" x1="'+L0+'" x2="'+(L0+PW)+'" y1="'+(T0-40)+'" y2="'+(T0-40)+'"/>';
+  s+=t(L0+PW/2,T0-22,'Khoảng dập x = '+f(X.act),'tx')+'<line class="dm" x1="'+xa+'" x2="'+xb+'" y1="'+(T0-18)+'" y2="'+(T0-18)+'"/>';
+  s+=t(L0+X.b1*sc/2,T0-5,f(X.b1),'tx')+t(L0+PW-X.b2*sc/2,T0-5,f(X.b2),'tx');
+  s+=t(L0-40,T0+PH/2,'Dài y = '+f(py),'',1)+'<line class="dm" x1="'+(L0-36)+'" x2="'+(L0-36)+'" y1="'+T0+'" y2="'+(T0+PH)+'"/>';
+  s+=t(L0-20,T0+PH/2,'Khoảng dập y = '+f(Y.act),'tx',1)+'<line class="dm" x1="'+(L0-16)+'" x2="'+(L0-16)+'" y1="'+ya+'" y2="'+yb+'"/>';
+  s+=t(L0-4,T0+Y.b1*sc/2+3,f(Y.b1),'tx',1)+t(L0-4,T0+PH-Y.b2*sc/2+3,f(Y.b2),'tx',1);
+  $('viz').innerHTML=s+'</svg>';
+}
+['px','py','bl','brr','bt','bb','dx','dy','erx','ery'].forEach(function(i){$(i).addEventListener('input',function(){sel.x=null;sel.y=null;calc()})});
+var ORDER=['py','px','bl','brr','bt','bb','erx','ery','dx','dy'];
+var NAME={py:'Chiều dài y',px:'Chiều rộng x',bl:'Biên X trái',brr:'Biên X phải',bt:'Biên Y trên',bb:'Biên Y dưới',erx:'Biên X ±',ery:'Biên Y ±',dx:'Khuôn x',dy:'Khuôn y'};
+var nav=$('nav'),cur=null;
+function place(){var vv=window.visualViewport;nav.style.top=(vv?vv.offsetTop:0)+'px'}
+function show(id){cur=id;var k=ORDER.indexOf(id);$('nm').textContent=NAME[id];$('prv').style.visibility=k>0?'visible':'hidden';$('nxt').textContent=k<ORDER.length-1?'▶':'✓';nav.style.display='flex';place()}
+function move(d){var k=ORDER.indexOf(cur)+d;if(k<0)return;if(k>=ORDER.length){$(cur).blur();nav.style.display='none';return}var n=$(ORDER[k]);n.focus();setTimeout(function(){try{n.select()}catch(e){}},30)}
+['prv','nxt'].forEach(function(i){var b=$(i);b.addEventListener('pointerdown',function(e){e.preventDefault()});b.addEventListener('mousedown',function(e){e.preventDefault()});b.addEventListener('click',function(){move(i==='nxt'?1:-1)})});
+ORDER.forEach(function(id){
+  var el=$(id);
+  el.setAttribute('enterkeyhint',id==='dy'?'done':'next');
+  el.addEventListener('focus',function(){show(id);setTimeout(function(){try{el.select()}catch(e){}},30)});
+  el.addEventListener('blur',function(){setTimeout(function(){if(ORDER.indexOf((document.activeElement||{}).id)<0)nav.style.display='none'},120)});
+  el.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();move(1)}});
+});
+if(window.visualViewport){window.visualViewport.addEventListener('resize',place);window.visualViewport.addEventListener('scroll',place)}
+window.addEventListener('scroll',place);window.addEventListener('resize',place);
+
+calc();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+</script>
+</body>
+</html>
